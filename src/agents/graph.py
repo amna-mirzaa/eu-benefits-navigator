@@ -39,3 +39,17 @@ def get_graph():
 def run_navigator(user_input: str) -> NavigatorState:
     app = get_graph()
     return app.invoke({"user_input": user_input, "trace": []})
+
+
+def run_navigator_stream(user_input: str):
+    """Yields (node_name, state_so_far) after each agent completes.
+
+    Lets the UI show real-time progress through the pipeline instead of a
+    single opaque spinner for the whole multi-agent run.
+    """
+    app = get_graph()
+    state: NavigatorState = {"user_input": user_input, "trace": []}
+    for update in app.stream({"user_input": user_input, "trace": []}, stream_mode="updates"):
+        for node_name, partial in update.items():
+            state.update(partial)
+            yield node_name, state
